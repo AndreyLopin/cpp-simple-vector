@@ -179,7 +179,6 @@ public:
         } else if(size_ == capacity_) {
             ResizeCapacity(GetCapacity() * 2);
         }
-        //
         array_ptr_[size_] = std::move(item);
         ++size_;
     }
@@ -190,7 +189,6 @@ public:
         } else if(size_ == capacity_) {
             ResizeCapacity(GetCapacity() * 2);
         }
-        //
         array_ptr_[size_] = std::move(item);
         ++size_;
     }
