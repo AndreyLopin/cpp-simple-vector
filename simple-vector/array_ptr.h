@@ -23,16 +23,29 @@ public:
         raw_ptr_ = raw_ptr;
     }
 
+    // Перемещающий конструктор
+    ArrayPtr(ArrayPtr&& other) {
+        raw_ptr_ = std::exchange(other.raw_ptr_, nullptr);
+    }
+
     // Запрещаем копирование
     ArrayPtr(const ArrayPtr&) = delete;
 
+    //Деструктор
     ~ArrayPtr() {
-        // Напишите деструктор самостоятельно
         delete[] raw_ptr_;
     }
 
     // Запрещаем присваивание
     ArrayPtr& operator=(const ArrayPtr&) = delete;
+
+    // Перемещающий оператор
+    ArrayPtr& operator=(ArrayPtr&& other) {
+        if(this != &other) {
+            raw_ptr_ = std::exchange(other.raw_ptr_, nullptr);
+        }
+        return *this;
+    }
 
     // Прекращает владением массивом в памяти, возвращает значение адреса массива
     // После вызова метода указатель на массив должен обнулиться
@@ -67,17 +80,6 @@ public:
         auto temp = raw_ptr_;
         this->raw_ptr_ = other.raw_ptr_;
         other.raw_ptr_ = temp;        
-    }
-
-    ArrayPtr(ArrayPtr&& other) {
-        raw_ptr_ = std::exchange(other.raw_ptr_, nullptr);
-    }
-
-    ArrayPtr& operator=(ArrayPtr&& other) {
-        if(this != &other) {
-            raw_ptr_ = std::exchange(other.raw_ptr_, nullptr);
-        }
-        return *this;
     }
 
 private:

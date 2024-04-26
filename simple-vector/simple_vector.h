@@ -53,6 +53,28 @@ public:
         std::move(init.begin(), init.end(), begin());
     }
 
+    // Перемещающий конструктор
+    SimpleVector(SimpleVector&& other) {
+        array_ptr_ = std::move(other.array_ptr_);
+        capacity_ = std::exchange(other.capacity_, 0);
+        size_ = std::exchange(other.size_, 0);
+    }
+
+    // Перемещающий оператор
+    SimpleVector& operator=(SimpleVector&& other) {
+        if(this != &other) {
+            array_ptr_ = std::move(other.array_ptr_);
+            capacity_ = std::exchange(other.capacity_, 0);
+            size_ = std::exchange(other.size_, 0);
+        }
+        return *this;
+    }
+
+    SimpleVector(ReserveProxyObj reserve) : 
+        SimpleVector(reserve.capacity_) {
+        size_ = 0;
+    }
+
     // Возвращает количество элементов в массиве
     size_t GetSize() const noexcept {
         return size_;
@@ -123,37 +145,37 @@ public:
     // Возвращает итератор на начало массива
     // Для пустого массива может быть равен (или не равен) nullptr
     Iterator begin() noexcept {
-        return &array_ptr_[0];
+        return array_ptr_.Get();
     }
 
     // Возвращает итератор на элемент, следующий за последним
     // Для пустого массива может быть равен (или не равен) nullptr
     Iterator end() noexcept {
-        return &array_ptr_[size_];
+        return array_ptr_.Get() + size_;
     }
 
     // Возвращает константный итератор на начало массива
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator begin() const noexcept {
-        return &array_ptr_[0];
+        return array_ptr_.Get();
     }
 
     // Возвращает итератор на элемент, следующий за последним
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator end() const noexcept {
-        return &array_ptr_[size_];
+        return array_ptr_.Get() + size_;
     }
 
     // Возвращает константный итератор на начало массива
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator cbegin() const noexcept {
-        return &array_ptr_[0];
+        return array_ptr_.Get();
     }
 
     // Возвращает итератор на элемент, следующий за последним
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator cend() const noexcept {
-        return &array_ptr_[size_];
+        return array_ptr_.Get() + size_;
     }
 
     SimpleVector(const SimpleVector& other) :
@@ -207,7 +229,7 @@ public:
         std::move_backward(std::next(begin(), pos_distance), end(), end() + 1);
         array_ptr_[pos_distance] = std::move(value);
         ++size_;
-        return &array_ptr_[pos_distance];
+        return array_ptr_.Get() + pos_distance;
     }
     
     Iterator Insert(ConstIterator pos, Type&& value) {
@@ -220,14 +242,12 @@ public:
         std::move_backward(begin() + pos_distance, end(), end() + 1);
         array_ptr_[pos_distance] = std::move(value);
         ++size_;
-        return &array_ptr_[pos_distance];
+        return array_ptr_.Get() + pos_distance;
     }
 
     // "Удаляет" последний элемент вектора. Вектор не должен быть пустым
     void PopBack() noexcept {
-        if(size_ > 0) {
-            --size_;
-        }
+        --size_;
     }
 
     // Удаляет элемент вектора в указанной позиции
@@ -236,7 +256,7 @@ public:
         size_t pos_distance = static_cast<size_t>(std::distance(cbegin(), pos));
         std::move(begin() + pos_distance + 1, end(), begin() + pos_distance);
         PopBack();
-        return &array_ptr_[pos_distance];
+        return array_ptr_.Get() + pos_distance;
     }
 
     // Обменивает значение с другим вектором
@@ -246,33 +266,12 @@ public:
         std::swap(other.size_, size_);
     }
 
-    SimpleVector(ReserveProxyObj reserve) : 
-        SimpleVector(reserve.capacity_) {
-        size_ = 0;
-    }
-
     void Reserve(size_t new_capacity) {
         if (capacity_ >= new_capacity) {
             return;
         }
         ResizeCapacity(new_capacity);
     }
-
-    SimpleVector(SimpleVector&& other) {
-        array_ptr_ = std::move(other.array_ptr_);
-        capacity_ = std::exchange(other.capacity_, 0);
-        size_ = std::exchange(other.size_, 0);
-    }
-
-    SimpleVector& operator=(SimpleVector&& other) {
-        if(this != &other) {
-            array_ptr_ = std::move(other.array_ptr_);
-            capacity_ = std::exchange(other.capacity_, 0);
-            size_ = std::exchange(other.size_, 0);
-        }
-        return *this;
-    }
-
 private:
     ArrayPtr<Type> array_ptr_;
     size_t capacity_ = 0;
